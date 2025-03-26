@@ -32,7 +32,7 @@ class UserCreatedBehavior(PipelineBehavior[CreateUser, UserId]):
         )
 
         self._sesion_repository.add(session)
-        self._session_storer.store_session_id(
+        self._session_storer.store_session(
             SessionReadModel(
                 session.entity_id, session.user_id, session.user_role, session.expires_at
             )
@@ -62,7 +62,7 @@ class UserLoggedInBehavior(PipelineBehavior[Login, UserReadModel]):
         )
 
         self._sesion_repository.add(session)
-        self._session_storer.store_session_id(
+        self._session_storer.store_session(
             SessionReadModel(
                 session.entity_id, session.user_id, session.user_role, session.expires_at
             )

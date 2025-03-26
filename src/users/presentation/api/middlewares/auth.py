@@ -28,7 +28,7 @@ class LoginMiddleware(BaseHTTPMiddleware):
         async with container() as req_container:
             session_raiser = await req_container.get(SessionRaiser)
 
-        session = session_raiser.raise_session_id()
+        session = session_raiser.raise_session()
 
         if not session:
             return response
@@ -60,7 +60,7 @@ class RegisterMiddleware(BaseHTTPMiddleware):
         async with container() as req_container:
             session_raiser = await req_container.get(SessionRaiser)
 
-        session = session_raiser.raise_session_id()
+        session = session_raiser.raise_session()
 
         if not session:
             return response
