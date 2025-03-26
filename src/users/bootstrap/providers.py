@@ -54,8 +54,31 @@ from users.bootstrap.config import (
     RabbitmqConfig,
 )
 from users.domain.shared.events import DomainEvent
+from users.domain.user.events import UserDeleted
+from users.infrastructure.auth.adapters.crypto_password_managment import (
+    CryptoPasswordHasher,
+    CryptoPasswordVerifier,
+)
+from users.infrastructure.auth.adapters.session_factory import SessionFactoryImpl
+from users.infrastructure.auth.adapters.session_provider import SessionProvider
+from users.infrastructure.auth.adapters.uuid7_session_id_generator import (
+    UUID7SessionIdGenerator,
+)
+from users.infrastructure.auth.session_creating_behaviors import (
+    UserCreatedBehavior,
+    UserLoggedInBehavior,
+)
+from users.infrastructure.auth.session_deliting_handler import SessionDelitingHandler
+from users.infrastructure.auth.session_getter_handlers import (
+    GetSessionById,
+    GetSessionByIdHandler,
+    GetUserSessions,
+    GetUserSessionsHandler,
+)
+from users.infrastructure.auth.session_login_handler import Login, LoginHandler
+from users.infrastructure.auth.session_logout_handler import Logout, LogoutHandler
 from users.infrastructure.domain_events import DomainEvents
-from users.infrastructure.fake_identity_provider import FakeIdentityProvider
+from users.infrastructure.htpp_identity_provider import HttpIdentityProvider
 from users.infrastructure.outbox.adapters.rabbitmq_outbox_publisher import (
     RabbitmqOutboxPublisher,
 )
@@ -69,6 +92,15 @@ from users.infrastructure.persistence.adapters.sql_data_mappers_registry import 
 )
 from users.infrastructure.persistence.adapters.sql_outbox_gateway import (
     SqlOutboxGateway,
+)
+from users.infrastructure.persistence.adapters.sql_session_data_mapper import (
+    SqlSessionDataMapper,
+)
+from users.infrastructure.persistence.adapters.sql_session_gateway import (
+    SqlSessionGateway,
+)
+from users.infrastructure.persistence.adapters.sql_session_repository import (
+    SqlSessionRepository,
 )
 from users.infrastructure.persistence.adapters.sql_user_data_mapper import (
     SqlUserDataMapper,
@@ -114,11 +146,13 @@ class DomainAdaptersProvider(Provider):
     scope = Scope.REQUEST
 
     repositories = provide_all(
-        WithParents[SqlUserRepository]  # type: ignore[misc]
+        WithParents[SqlUserRepository],  # type: ignore[misc]
+        WithParents[SqlSessionRepository],  # type: ignore[misc]
     )
     domain_events = provide(WithParents[DomainEvents])  # type: ignore[misc]
     meetup_factory = provide(WithParents[UserFactoryImpl])  # type: ignore[misc]
     unit_of_work = provide(WithParents[UnitOfWorkImpl])  # type: ignore[misc]
+    session_factory = provide(WithParents[SessionFactoryImpl])  # type: ignore[misc]
 
 
 class ApplicationAdaptersProvider(Provider):
@@ -127,6 +161,7 @@ class ApplicationAdaptersProvider(Provider):
     gateways = provide_all(
         WithParents[SqlUsersGateway],  # type: ignore[misc]
         WithParents[SqlOutboxGateway],  # type: ignore[misc]
+        WithParents[SqlSessionGateway],  # type: ignore[misc]
     )
     id_generator = provide(
         WithParents[UUID7IdGenerator],  # type: ignore[misc]
@@ -134,10 +169,6 @@ class ApplicationAdaptersProvider(Provider):
     )
     time_provider = provide(
         WithParents[UtcTimeProvider],  # type: ignore[misc]
-        scope=Scope.APP,
-    )
-    identity_provider = provide(
-        WithParents[FakeIdentityProvider],  # type: ignore[misc]
         scope=Scope.APP,
     )
 
@@ -148,6 +179,7 @@ class InfrastructureAdaptersProvider(Provider):
     transaction = alias(AsyncConnection, provides=Transaction)
     data_mappers = provide_all(
         WithParents[SqlUserDataMapper],  # type: ignore[misc]
+        WithParents[SqlSessionDataMapper],  # type: ignore[misc]
     )
     data_mappers_registry = provide(
         WithParents[SqlDataMappersRegistry],  # type: ignore[misc]
@@ -164,11 +196,18 @@ class ApplicationHandlersProvider(Provider):
         DeleteAccountHandler,
         LoadAdminsHandler,
         LoadUserByIdHandler,
+        SessionDelitingHandler,
+        LoginHandler,
+        LogoutHandler,
+        GetUserSessionsHandler,
+        GetSessionByIdHandler,
     )
     behaviors = provide_all(
         CommitionBehavior,
         EventPublishingBehavior,
         EventIdGenerationBehavior,
+        UserLoggedInBehavior,
+        UserCreatedBehavior,
     )
 
 
@@ -179,12 +218,19 @@ class BazarioProvider(Provider):
     def registry(self) -> Registry:
         registry = Registry()
 
+        registry.add_request_handler(GetSessionById, GetSessionByIdHandler)
+        registry.add_request_handler(GetUserSessions, GetUserSessionsHandler)
+        registry.add_request_handler(Login, LoginHandler)
+        registry.add_request_handler(Logout, LogoutHandler)
         registry.add_request_handler(CreateUser, CreateUserHandler)
         registry.add_request_handler(UpdateInfo, UpdateInfoHandler)
         registry.add_request_handler(DeleteAccount, DeleteAccountHandler)
         registry.add_request_handler(LoadAdmins, LoadAdminsHandler)
         registry.add_request_handler(LoadUserById, LoadUserByIdHandler)
+        registry.add_notification_handlers(UserDeleted, SessionDelitingHandler)
         registry.add_notification_handlers(DomainEvent, OutboxStoringHandler)
+        registry.add_pipeline_behaviors(Login, UserLoggedInBehavior)
+        registry.add_pipeline_behaviors(CreateUser, UserCreatedBehavior)
         registry.add_pipeline_behaviors(DomainEvent, EventIdGenerationBehavior)
         registry.add_pipeline_behaviors(
             Command,
@@ -235,3 +281,29 @@ class OutboxProvider(Provider):
             outbox_gateway=outbox_gateway,
             outbox_publisher=outbox_publisher,
         )
+
+
+class AuthProvider(Provider):
+    scope = Scope.REQUEST
+
+    session_id_generator = provide(
+        WithParents[UUID7SessionIdGenerator]  # type: ignore[misc]
+    )
+
+    session_provider = provide(
+        WithParents[SessionProvider],  # type: ignore[misc]
+    )
+
+    password_hasher = provide(
+        WithParents[CryptoPasswordHasher],  # type: ignore[misc]
+        scope=Scope.APP,
+    )
+
+    password_verifier = provide(
+        WithParents[CryptoPasswordVerifier],  # type: ignore[misc]
+        scope=Scope.APP,
+    )
+
+    identity_provider = provide(
+        WithParents[HttpIdentityProvider],  # type: ignore[misc]
+    )

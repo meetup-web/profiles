@@ -16,10 +16,10 @@ class SqlUserDataMapper(DataMapper[User]):
             first_name=entity.fullname.first_name,
             last_name=entity.fullname.last_name,
             middle_name=entity.fullname.middle_name,
-            email=entity.contacts.email,
-            phone_number=entity.contacts.phone_number,
+            email=entity.email,
             created_at=entity.created_at,
             user_role=entity.user_role,
+            password=entity.password,
         )
         await self._connection.execute(statement)
 
@@ -33,6 +33,7 @@ class SqlUserDataMapper(DataMapper[User]):
                 last_name=entity.fullname.last_name,
                 middle_name=entity.fullname.middle_name,
                 user_role=entity.user_role,
+                password=entity.password,
             )
         )
         await self._connection.execute(statement)

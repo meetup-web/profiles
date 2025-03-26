@@ -8,14 +8,15 @@ from users.application.ports.time_provider import TimeProvider
 from users.domain.user.factory import UserFactory
 from users.domain.user.repository import UserRepository
 from users.domain.user.user_id import UserId
-from users.domain.user.value_objects import Contacts, Fullname
+from users.domain.user.value_objects import Fullname
 
 
 @dataclass(frozen=True)
 class CreateUser(Command[UserId]):
-    contacts: Contacts
+    email: str
     fullname: Fullname
     birth_date: date | None
+    password: str
 
 
 class CreateUserHandler(RequestHandler[CreateUser, UserId]):
@@ -33,7 +34,8 @@ class CreateUserHandler(RequestHandler[CreateUser, UserId]):
         user = await self._user_factory.create_user(
             fullname=request.fullname,
             birth_date=request.birth_date,
-            contacts=request.contacts,
+            email=request.email,
+            password=request.password,
         )
 
         self._user_repository.add(user)

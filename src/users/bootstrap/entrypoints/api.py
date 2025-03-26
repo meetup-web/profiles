@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, cast
 
+from dishka import AsyncContainer
 from dishka.integrations.fastapi import (
     setup_dishka as add_container_to_fastapi,
 )
@@ -15,6 +16,12 @@ from users.bootstrap.entrypoints.stream import bootstrap_stream
 from users.presentation.api.exception_handlers import (
     application_error_handler,
 )
+from users.presentation.api.middlewares.auth import (
+    LoginMiddleware,
+    LogoutMiddleware,
+    RegisterMiddleware,
+)
+from users.presentation.api.routers.auth import AUTH_ROUTER
 from users.presentation.api.routers.healthcheck import HEALTHCHECK_ROUTER
 from users.presentation.api.routers.users import USERS_ROUTER
 
@@ -25,9 +32,11 @@ if TYPE_CHECKING:
 @asynccontextmanager
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     stream = bootstrap_stream()
+    dishka_container = cast(AsyncContainer, application.state.dishka_container)
     await stream.start()
     yield
     await stream.stop()
+    await dishka_container.close()
 
 
 def add_middlewares(application: FastAPI) -> None:
@@ -38,11 +47,15 @@ def add_middlewares(application: FastAPI) -> None:
         allow_headers=["*"],
         allow_credentials=True,
     )
+    application.add_middleware(LoginMiddleware)
+    application.add_middleware(RegisterMiddleware)
+    application.add_middleware(LogoutMiddleware)
 
 
 def add_api_routers(application: FastAPI) -> None:
     application.include_router(HEALTHCHECK_ROUTER)
     application.include_router(USERS_ROUTER)
+    application.include_router(AUTH_ROUTER)
 
 
 def add_exception_handlers(application: FastAPI) -> None:

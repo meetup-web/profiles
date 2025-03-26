@@ -6,7 +6,7 @@ from users.application.models.user import UserReadModel
 from users.application.ports.user_gateway import UserGateway
 from users.domain.user.roles import UserRole
 from users.domain.user.user_id import UserId
-from users.domain.user.value_objects import Contacts, Fullname
+from users.domain.user.value_objects import Fullname
 from users.infrastructure.persistence.sql_tables import USERS_TABLE
 
 
@@ -26,7 +26,6 @@ class SqlUsersGateway(UserGateway):
             USERS_TABLE.c.last_name.label("last_name"),
             USERS_TABLE.c.middle_name.label("middle_name"),
             USERS_TABLE.c.email.label("email"),
-            USERS_TABLE.c.phone_number.label("phone_number"),
             USERS_TABLE.c.created_at.label("created_at"),
             USERS_TABLE.c.user_role.label("user_role"),
         ).where(USERS_TABLE.c.user_id == user_id)
@@ -47,7 +46,6 @@ class SqlUsersGateway(UserGateway):
                 USERS_TABLE.c.last_name.label("last_name"),
                 USERS_TABLE.c.middle_name.label("middle_name"),
                 USERS_TABLE.c.email.label("email"),
-                USERS_TABLE.c.phone_number.label("phone_number"),
                 USERS_TABLE.c.created_at.label("created_at"),
                 USERS_TABLE.c.user_role.label("user_role"),
             )
@@ -72,10 +70,7 @@ class SqlUsersGateway(UserGateway):
                 last_name=row.last_name,
                 middle_name=row.middle_name,
             ),
-            contacts=Contacts(
-                email=row.email,
-                phone_number=row.phone_number,
-            ),
+            email=row.email,
             user_role=UserRole(row.user_role),
             birth_date=row.birth_date,
             created_at=row.created_at,

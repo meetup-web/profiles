@@ -6,9 +6,7 @@ from dishka.integrations.fastapi import inject
 from fastapi import APIRouter, Depends
 from starlette.status import (
     HTTP_200_OK,
-    HTTP_201_CREATED,
     HTTP_404_NOT_FOUND,
-    HTTP_409_CONFLICT,
 )
 
 from users.application.common.application_error import ApplicationError
@@ -16,7 +14,6 @@ from users.application.models.pagination import Pagination
 from users.application.models.user import UserReadModel
 from users.application.operations.read.load_admins import LoadAdmins
 from users.application.operations.read.load_user_by_id import LoadUserById
-from users.application.operations.write.create_user import CreateUser
 from users.application.operations.write.delete_account import DeleteAccount
 from users.application.operations.write.update_info import UpdateInfo
 from users.domain.user.user_id import UserId
@@ -26,22 +23,6 @@ from users.presentation.api.response_models import (
 )
 
 USERS_ROUTER = APIRouter(prefix="/users", tags=["users"])
-
-
-@USERS_ROUTER.post(
-    "/",
-    status_code=HTTP_201_CREATED,
-    responses={
-        HTTP_201_CREATED: {"model": SuccessResponse[UserId]},
-        HTTP_409_CONFLICT: {"model": ErrorResponse[ApplicationError]},
-    },
-)
-@inject
-async def create_user(
-    request: CreateUser, *, sender: FromDishka[Sender]
-) -> SuccessResponse[UserId]:
-    user_id = await sender.send(request)
-    return SuccessResponse(result=user_id, status=HTTP_201_CREATED)
 
 
 @USERS_ROUTER.delete(

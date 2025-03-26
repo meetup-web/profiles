@@ -17,6 +17,7 @@ from users.bootstrap.providers import (
     ApiConfigProvider,
     ApplicationAdaptersProvider,
     ApplicationHandlersProvider,
+    AuthProvider,
     BazarioProvider,
     BrokerProvider,
     CliConfigProvider,
@@ -34,13 +35,14 @@ def bootstrap_api_container(
     return make_async_container(
         TaskiqProvider(),
         BazarioProvider(),
-        FastapiProvider(),
         ApiConfigProvider(),
         PersistenceProvider(),
         DomainAdaptersProvider(),
         ApplicationAdaptersProvider(),
         ApplicationHandlersProvider(),
         InfrastructureAdaptersProvider(),
+        AuthProvider(),
+        FastapiProvider(),
         context={
             DatabaseConfig: database_config,
             RabbitmqConfig: rabbitmq_config,

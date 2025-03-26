@@ -6,7 +6,7 @@ from users.domain.shared.unit_of_work import UnitOfWork
 from users.domain.user.repository import UserRepository
 from users.domain.user.user import User
 from users.domain.user.user_id import UserId
-from users.domain.user.value_objects import Contacts, Fullname
+from users.domain.user.value_objects import Fullname
 from users.infrastructure.persistence.sql_tables import USERS_TABLE
 
 
@@ -38,9 +38,9 @@ class SqlUserRepository(UserRepository):
             USERS_TABLE.c.last_name.label("last_name"),
             USERS_TABLE.c.middle_name.label("middle_name"),
             USERS_TABLE.c.email.label("email"),
-            USERS_TABLE.c.phone_number.label("phone_number"),
             USERS_TABLE.c.created_at.label("created_at"),
             USERS_TABLE.c.user_role.label("user_role"),
+            USERS_TABLE.c.password.label("password"),
         ).where(USERS_TABLE.c.phone_number == phone)
         cursor_result = await self._connection.execute(statement)
         row = cursor_result.fetchone()
@@ -58,9 +58,9 @@ class SqlUserRepository(UserRepository):
             USERS_TABLE.c.last_name.label("last_name"),
             USERS_TABLE.c.middle_name.label("middle_name"),
             USERS_TABLE.c.email.label("email"),
-            USERS_TABLE.c.phone_number.label("phone_number"),
             USERS_TABLE.c.created_at.label("created_at"),
             USERS_TABLE.c.user_role.label("user_role"),
+            USERS_TABLE.c.password.label("password"),
         ).where(USERS_TABLE.c.email == email)
         cursor_result = await self._connection.execute(statement)
         row = cursor_result.fetchone()
@@ -81,9 +81,9 @@ class SqlUserRepository(UserRepository):
             USERS_TABLE.c.last_name.label("last_name"),
             USERS_TABLE.c.middle_name.label("middle_name"),
             USERS_TABLE.c.email.label("email"),
-            USERS_TABLE.c.phone_number.label("phone_number"),
             USERS_TABLE.c.created_at.label("created_at"),
             USERS_TABLE.c.user_role.label("user_role"),
+            USERS_TABLE.c.password.label("password"),
         ).where(USERS_TABLE.c.user_id == user_id)
         cursor_result = await self._connection.execute(statement)
         row = cursor_result.fetchone()
@@ -103,13 +103,11 @@ class SqlUserRepository(UserRepository):
                 last_name=row.last_name,
                 middle_name=row.middle_name,
             ),
-            contacts=Contacts(
-                email=row.email,
-                phone_number=row.phone_number,
-            ),
+            email=row.email,
             created_at=row.created_at,
             birth_date=row.birth_date,
             user_role=row.user_role,
+            password=row.password,
         )
 
         return user
