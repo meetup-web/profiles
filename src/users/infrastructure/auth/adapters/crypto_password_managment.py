@@ -12,7 +12,7 @@ class CryptoPasswordHasher(PasswordHasher):
     def hash_password(self, password: str) -> Hashable:
         hashed_bytes = hashpw(password=password.encode(self._ENCODING), salt=gensalt())
 
-        return cast(Hashable, hashed_bytes)
+        return cast("Hashable", hashed_bytes)
 
 
 class CryptoPasswordVerifier(PasswordVerifier):
@@ -21,6 +21,6 @@ class CryptoPasswordVerifier(PasswordVerifier):
     def verify_password(self, password: str, hashed_password: Hashable) -> bool:
         decision = checkpw(
             password=password.encode(self._ENCODING),
-            hashed_password=cast(bytes, hashed_password),
+            hashed_password=cast("bytes", hashed_password),
         )
         return decision

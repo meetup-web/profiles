@@ -1,12 +1,14 @@
-from typing import Final, Literal, cast
+from typing import TYPE_CHECKING, Final, Literal, cast
 
-from dishka import AsyncContainer
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
 
 from users.infrastructure.auth.session_provider import SessionRaiser
 from users.presentation.api.routers.auth import COOKIE_NAME
+
+if TYPE_CHECKING:
+    from dishka import AsyncContainer
 
 
 class LoginMiddleware(BaseHTTPMiddleware):
@@ -21,7 +23,7 @@ class LoginMiddleware(BaseHTTPMiddleware):
         if not request.url.path.startswith(self._PATH):
             return response
 
-        container = cast(AsyncContainer, request.state.dishka_container)
+        container = cast("AsyncContainer", request.state.dishka_container)
 
         async with container() as req_container:
             session_raiser = await req_container.get(SessionRaiser)
@@ -53,7 +55,7 @@ class RegisterMiddleware(BaseHTTPMiddleware):
         if not request.url.path.startswith(self._PATH):
             return response
 
-        container = cast(AsyncContainer, request.state.dishka_container)
+        container = cast("AsyncContainer", request.state.dishka_container)
 
         async with container() as req_container:
             session_raiser = await req_container.get(SessionRaiser)
