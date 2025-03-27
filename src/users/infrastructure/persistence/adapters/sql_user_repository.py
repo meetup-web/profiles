@@ -1,3 +1,5 @@
+from typing import Final, cast
+
 from sqlalchemy import Row, select
 from sqlalchemy.ext.asyncio import AsyncConnection
 
@@ -11,6 +13,8 @@ from users.infrastructure.persistence.sql_tables import USERS_TABLE
 
 
 class SqlUserRepository(UserRepository):
+    _ENCODING: Final[str] = "utf-8"
+
     def __init__(
         self,
         connection: AsyncConnection,
@@ -107,7 +111,7 @@ class SqlUserRepository(UserRepository):
             created_at=row.created_at,
             birth_date=row.birth_date,
             user_role=row.user_role,
-            password=row.password,
+            password=cast(str, row.password).encode(self._ENCODING),
         )
 
         return user

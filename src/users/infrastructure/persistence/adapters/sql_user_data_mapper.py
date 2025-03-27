@@ -1,3 +1,5 @@
+from typing import Final
+
 from sqlalchemy.ext.asyncio import AsyncConnection
 
 from users.domain.user.user import User
@@ -6,6 +8,8 @@ from users.infrastructure.persistence.sql_tables import USERS_TABLE
 
 
 class SqlUserDataMapper(DataMapper[User]):
+    _ENCODING: Final[str] = "utf-8"
+
     def __init__(self, connection: AsyncConnection) -> None:
         self._connection = connection
 
@@ -19,7 +23,11 @@ class SqlUserDataMapper(DataMapper[User]):
             email=entity.email,
             created_at=entity.created_at,
             user_role=entity.user_role,
-            password=entity.password,
+            password=(
+                entity.password.decode(self._ENCODING)
+                if isinstance(entity.password, bytes)
+                else entity.password
+            ),
         )
         await self._connection.execute(statement)
 

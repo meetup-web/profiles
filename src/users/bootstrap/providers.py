@@ -78,7 +78,6 @@ from users.infrastructure.auth.session_getter_handlers import (
 from users.infrastructure.auth.session_login_handler import Login, LoginHandler
 from users.infrastructure.auth.session_logout_handler import Logout, LogoutHandler
 from users.infrastructure.domain_events import DomainEvents
-from users.infrastructure.htpp_identity_provider import HttpIdentityProvider
 from users.infrastructure.outbox.adapters.rabbitmq_outbox_publisher import (
     RabbitmqOutboxPublisher,
 )
@@ -118,6 +117,7 @@ from users.infrastructure.persistence.transaction import Transaction
 from users.infrastructure.user_factory import UserFactoryImpl
 from users.infrastructure.utc_time_provider import UtcTimeProvider
 from users.infrastructure.uuid7_id_generator import UUID7IdGenerator
+from users.presentation.api.htpp_identity_provider import HttpIdentityProvider
 
 
 class ApiConfigProvider(Provider):

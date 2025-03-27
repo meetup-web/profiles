@@ -1,0 +1,97 @@
+services:
+  users:
+    image: users
+    build: .
+    container_name: users
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672/
+      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres/users
+    expose:
+      - '8000'
+    ports:
+      - '8000:8000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    command: ['users', 'start-uvicorn', '--host', '0.0.0.0', '--port', '8000']
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:8000/healthcheck"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s
+  migrations:
+    image: users
+    build: .
+    environment:
+      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres/users
+    depends_on:
+      postgres:
+        condition: service_healthy
+    container_name: migrations
+    command: ["sh", "-c", "users make-migrations && users upgrade-migration"]
+
+  taskiq_worker:
+    image: users
+    build: .
+    container_name: taskiq_worker
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672/
+      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres:5432/users
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    command: ['users', 'start-worker']
+
+  taskiq_tasks:
+    image: users
+    build: .
+    container_name: taskiq_tasks
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672/
+      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres:5432/users
+    depends_on:
+      taskiq_worker:
+        condition: service_started
+    command: ['users', 'start-tasks']
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: users
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d users -U postgres"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5673:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics check_running -q"]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 10s

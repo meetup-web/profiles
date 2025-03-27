@@ -38,7 +38,7 @@ class BirthDateChanged(DomainEvent):
 @dataclass(frozen=True)
 class UserPasswordChanged(DomainEvent):
     user_id: UserId
-    password: Hashable
+    password: bytes
 
 
 @dataclass(frozen=True)

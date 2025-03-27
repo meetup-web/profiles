@@ -26,7 +26,7 @@ class User(Entity[UserId]):
         fullname: Fullname,
         created_at: datetime,
         user_role: UserRole = UserRole.USER,
-        password: Hashable,
+        password: bytes,
         email: str,
     ) -> None:
         Entity.__init__(self, entity_id, event_adder, unit_of_work)
@@ -50,7 +50,7 @@ class User(Entity[UserId]):
         self.mark_dirty()
         self.add_event(event)
 
-    def change_password(self, password: Hashable, current_date: datetime) -> None:
+    def change_password(self, password: bytes, current_date: datetime) -> None:
         self._password = password
         event = UserPasswordChanged(
             user_id=self._entity_id, password=password, event_date=current_date

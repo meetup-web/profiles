@@ -8,7 +8,7 @@ from taskiq.cli.utils import import_object
 from taskiq_aio_pika.broker import AioPikaBroker
 from uvicorn import Config as UvicornConfig
 
-DEFAULT_DB_URI = "sqlite+aiosqlite:///blog.db"
+DEFAULT_DB_URI = "sqlite+aiosqlite:///users.db"
 DEFAULT_MQ_URI = "amqp://guest:guest@localhost:5672/"
 DEFAULT_SERVER_HOST = "127.0.0.1"
 DEFAULT_SERVER_PORT = 8000
