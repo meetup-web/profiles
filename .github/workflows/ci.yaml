@@ -66,25 +66,25 @@ jobs:
         run: mypy
 
     docker:
-    needs: [build, lint, check-tipization]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+      needs: [build, lint, check-tipization]
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
 
-      - name: Check Docker version
-        run: docker --version
+        - name: Check Docker version
+          run: docker --version
 
-      # Try direct login with Docker CLI
-      - name: Login to Docker Hub
-        run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin docker.io
+        # Try direct login with Docker CLI
+        - name: Login to Docker Hub
+          run: |
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin docker.io
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/user:latest
+        - name: Build and push
+          uses: docker/build-push-action@v5
+          with:
+            context: .
+            push: true
+            tags: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/user:latest
