@@ -111,7 +111,7 @@ class SqlUserRepository(UserRepository):
             created_at=row.created_at,
             birth_date=row.birth_date,
             user_role=row.user_role,
-            password=cast(str, row.password).encode(self._ENCODING),
+            password=cast("str", row.password).encode(self._ENCODING),
         )
 
         return user
