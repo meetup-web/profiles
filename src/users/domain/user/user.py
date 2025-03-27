@@ -1,4 +1,3 @@
-from collections.abc import Hashable
 from datetime import date, datetime
 
 from users.domain.shared.entity import Entity
@@ -114,5 +113,5 @@ class User(Entity[UserId]):
         return self._user_role
 
     @property
-    def password(self) -> Hashable:
+    def password(self) -> bytes:
         return self._password
