@@ -5,7 +5,7 @@ from fastapi import Request
 
 from users.application.common.application_error import ApplicationError, ErrorType
 from users.application.ports.context.identity_provider import IdentityProvider
-from users.domain.user.roles import UserRole
+from users.application.ports.context.user_role import UserRole
 from users.domain.user.user_id import UserId
 
 

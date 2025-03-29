@@ -1,19 +1,13 @@
-from typing import Annotated
-
 from bazario.asyncio import Sender
 from dishka import FromDishka
 from dishka.integrations.fastapi import inject
-from fastapi import APIRouter, Depends
-from starlette.status import (
-    HTTP_200_OK,
-    HTTP_404_NOT_FOUND,
-)
+from fastapi import APIRouter
+from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND
 
 from users.application.common.application_error import ApplicationError
-from users.application.models.pagination import Pagination
 from users.application.models.user import UserReadModel
-from users.application.operations.read.load_admins import LoadAdmins
 from users.application.operations.read.load_user_by_id import LoadUserById
+from users.application.operations.write.create_user import CreateUser
 from users.application.operations.write.delete_account import DeleteAccount
 from users.application.operations.write.update_info import UpdateInfo
 from users.domain.user.user_id import UserId
@@ -23,6 +17,21 @@ from users.presentation.api.response_models import (
 )
 
 USERS_ROUTER = APIRouter(prefix="/users", tags=["users"])
+
+
+@USERS_ROUTER.post(
+    path="/",
+    responses={
+        HTTP_201_CREATED: {"model": SuccessResponse[UserId]},
+    },
+    status_code=HTTP_201_CREATED,
+)
+@inject
+async def create_user(
+    request: CreateUser, *, sender: FromDishka[Sender]
+) -> SuccessResponse[UserId]:
+    user_id = await sender.send(request)
+    return SuccessResponse(result=user_id, status=HTTP_201_CREATED)
 
 
 @USERS_ROUTER.delete(
@@ -53,19 +62,6 @@ async def update_info(
 ) -> SuccessResponse[None]:
     await sender.send(request)
     return SuccessResponse(result=None, status=HTTP_200_OK)
-
-
-@USERS_ROUTER.get(
-    "/admins",
-    status_code=HTTP_200_OK,
-    responses={HTTP_200_OK: {"model": SuccessResponse[list[UserReadModel]]}},
-)
-@inject
-async def load_admins(
-    pagination: Annotated[Pagination, Depends()], *, sender: FromDishka[Sender]
-) -> SuccessResponse[list[UserReadModel]]:
-    admins = await sender.send(LoadAdmins(pagination=pagination))
-    return SuccessResponse(result=admins, status=HTTP_200_OK)
 
 
 @USERS_ROUTER.get(

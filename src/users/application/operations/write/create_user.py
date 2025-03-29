@@ -13,10 +13,8 @@ from users.domain.user.value_objects import Fullname
 
 @dataclass(frozen=True)
 class CreateUser(Command[UserId]):
-    email: str
     fullname: Fullname
     birth_date: date | None
-    password: str
 
 
 class CreateUserHandler(RequestHandler[CreateUser, UserId]):
@@ -32,10 +30,7 @@ class CreateUserHandler(RequestHandler[CreateUser, UserId]):
 
     async def handle(self, request: CreateUser) -> UserId:
         user = await self._user_factory.create_user(
-            fullname=request.fullname,
-            birth_date=request.birth_date,
-            email=request.email,
-            password=request.password,
+            fullname=request.fullname, birth_date=request.birth_date
         )
 
         self._user_repository.add(user)

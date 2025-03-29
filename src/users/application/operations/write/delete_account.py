@@ -40,4 +40,4 @@ class DeleteAccountHandler(RequestHandler[DeleteAccount, None]):
         )
         user.add_event(event)
 
-        self._user_repository.delete(user)
+        await self._user_repository.delete(user)

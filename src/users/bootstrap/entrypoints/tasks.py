@@ -17,6 +17,7 @@ from users.infrastructure.outbox.adapters.rabbitmq_outbox_publisher import (
 from users.infrastructure.outbox.process_outbox_cron_task import (
     process_outbox,
 )
+from users.infrastructure.persistence.sql_tables import map_outbox_table
 
 
 def add_tasks_to_taskiq(broker: AioPikaBroker) -> None:
@@ -27,6 +28,10 @@ def add_tasks_to_taskiq(broker: AioPikaBroker) -> None:
 
 async def start_broker(state: TaskiqState) -> None:
     await state.faststream_broker.start()
+
+
+def map_outbox_table_handler(state: TaskiqState) -> None:
+    map_outbox_table()
 
 
 async def bind_queue_to_exchange(state: TaskiqState) -> None:
@@ -43,6 +48,10 @@ def add_event_handlers(broker: AioPikaBroker) -> None:
     broker.add_event_handler(
         TaskiqEvents.WORKER_STARTUP,
         bind_queue_to_exchange,
+    )
+    broker.add_event_handler(
+        TaskiqEvents.WORKER_STARTUP,
+        map_outbox_table_handler,
     )
 
 

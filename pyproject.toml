@@ -16,12 +16,10 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aio-pika>=9.5.5",
-    "aiohttp>=3.11.13",
     "aiosqlite>=0.21.0",
     "alembic>=1.15.1",
     "asyncpg>=0.30.0",
     "bazario>=0.4.2",
-    "bcrypt>=4.3.0",
     "click>=8.1.8",
     "dishka>=1.4.2",
     "fastapi>=0.115.11",

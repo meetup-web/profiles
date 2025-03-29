@@ -18,4 +18,4 @@ class OutboxStoringHandler(NotificationHandler[DomainEvent]):
             message_id=UUID(str(notification.event_id)),
             event_type=notification.event_type,
         )
-        await self._outbox_gateway.insert(message)
+        self._outbox_gateway.add(message)

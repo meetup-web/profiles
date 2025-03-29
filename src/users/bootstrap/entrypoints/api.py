@@ -12,15 +12,10 @@ from users.application.common.application_error import ApplicationError
 from users.bootstrap.config import get_database_config, get_rabbitmq_config
 from users.bootstrap.container import bootstrap_api_container
 from users.bootstrap.entrypoints.stream import bootstrap_stream
+from users.infrastructure.persistence.sql_tables import map_outbox_table, map_user_table
 from users.presentation.api.exception_handlers import (
     application_error_handler,
 )
-from users.presentation.api.middlewares.auth import (
-    LoginMiddleware,
-    LogoutMiddleware,
-    RegisterMiddleware,
-)
-from users.presentation.api.routers.auth import AUTH_ROUTER
 from users.presentation.api.routers.healthcheck import HEALTHCHECK_ROUTER
 from users.presentation.api.routers.users import USERS_ROUTER
 
@@ -31,6 +26,8 @@ if TYPE_CHECKING:
 
 @asynccontextmanager
 async def lifespan(application: FastAPI) -> AsyncIterator[None]:
+    map_user_table()
+    map_outbox_table()
     stream = bootstrap_stream()
     dishka_container = cast("AsyncContainer", application.state.dishka_container)
     await stream.start()
@@ -47,15 +44,11 @@ def add_middlewares(application: FastAPI) -> None:
         allow_headers=["*"],
         allow_credentials=True,
     )
-    application.add_middleware(LoginMiddleware)
-    application.add_middleware(RegisterMiddleware)
-    application.add_middleware(LogoutMiddleware)
 
 
 def add_api_routers(application: FastAPI) -> None:
     application.include_router(HEALTHCHECK_ROUTER)
     application.include_router(USERS_ROUTER)
-    application.include_router(AUTH_ROUTER)
 
 
 def add_exception_handlers(application: FastAPI) -> None:

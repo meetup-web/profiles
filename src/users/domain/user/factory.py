@@ -8,5 +8,5 @@ from users.domain.user.value_objects import Fullname
 class UserFactory(ABC):
     @abstractmethod
     async def create_user(
-        self, *, fullname: Fullname, email: str, birth_date: date | None, password: str
+        self, *, fullname: Fullname, birth_date: date | None
     ) -> User: ...
