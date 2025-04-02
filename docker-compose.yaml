@@ -1,12 +1,12 @@
 services:
   users:
-    image: users
+    image: profiles
     build: .
-    container_name: users
+    container_name: profiles
     restart: unless-stopped
     environment:
       - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672/
-      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres/users
+      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres/profiles
     expose:
       - '8000'
     ports:
@@ -16,7 +16,7 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    command: ['users', 'start-uvicorn', '--host', '0.0.0.0', '--port', '8000']
+    command: ['profiles', 'start-uvicorn', '--host', '0.0.0.0', '--port', '8000']
     healthcheck:
       test: ["CMD-SHELL", "curl -fsSL http://localhost:8000/healthcheck"]
       interval: 10s
@@ -27,40 +27,40 @@ services:
     image: users
     build: .
     environment:
-      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres/users
+      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres/profiles
     depends_on:
       postgres:
         condition: service_healthy
     container_name: migrations
-    command: ["sh", "-c", "users make-migrations && users upgrade-migration"]
+    command: ["sh", "-c", "profiles make-migrations && profiles upgrade-migration"]
 
   taskiq_worker:
-    image: users
+    image: profiles
     build: .
     container_name: taskiq_worker
     restart: unless-stopped
     environment:
       - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672/
-      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres:5432/users
+      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres:5432/profiles
     depends_on:
       rabbitmq:
         condition: service_healthy
       migrations:
         condition: service_completed_successfully
-    command: ['users', 'start-worker']
+    command: ['profiles', 'start-worker']
 
   taskiq_tasks:
-    image: users
+    image: profiles
     build: .
     container_name: taskiq_tasks
     restart: unless-stopped
     environment:
       - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672/
-      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres:5432/users
+      - DATABASE_URI=postgresql+asyncpg://postgres:postgres@postgres:5432/profiles
     depends_on:
       taskiq_worker:
         condition: service_started
-    command: ['users', 'start-tasks']
+    command: ['profiles', 'start-tasks']
 
   postgres:
     image: postgres:16-alpine
@@ -69,11 +69,11 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_USER: postgres
-      POSTGRES_DB: users
+      POSTGRES_DB: profiles
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d users -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -d profiles -U postgres"]
       interval: 10s
       timeout: 60s
       retries: 5

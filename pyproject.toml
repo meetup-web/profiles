@@ -33,4 +33,4 @@ dependencies = [
 ]
 
 [project.scripts]
-users = "users.bootstrap.entrypoints.cli:main"
+profiles = "profiles.bootstrap.entrypoints.cli:main"
