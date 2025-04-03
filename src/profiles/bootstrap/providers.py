@@ -37,6 +37,10 @@ from profiles.application.operations.read.load_profile_by_profile_id import (
     LoadProfileById,
     LoadProfileByIdHandler,
 )
+from profiles.application.operations.read.load_profiles_by_user_ids import (
+    LoadProfilesByUserIds,
+    LoadProfilesByUserIdsHandler,
+)
 from profiles.application.operations.write.create_profile import (
     CreateProfile,
     CreateProfileHandler,
@@ -151,6 +155,7 @@ class ApplicationHandlersProvider(Provider):
         UpdateInfoHandler,
         DeleteProfileHandler,
         LoadProfileByIdHandler,
+        LoadProfilesByUserIds,
     )
     behaviors = provide_all(
         CommitionBehavior,
@@ -166,6 +171,7 @@ class BazarioProvider(Provider):
     def registry(self) -> Registry:
         registry = Registry()
 
+        registry.add_request_handler(LoadProfilesByUserIds, LoadProfilesByUserIdsHandler)
         registry.add_request_handler(CreateProfile, CreateProfileHandler)
         registry.add_request_handler(UpdateInfo, UpdateInfoHandler)
         registry.add_request_handler(DeleteProfile, DeleteProfileHandler)

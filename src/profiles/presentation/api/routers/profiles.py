@@ -12,6 +12,9 @@ from profiles.application.operations.read.load_profile_by_profile_id import (
 from profiles.application.operations.read.load_profile_by_user_id import (
     LoadProfileByUserId,
 )
+from profiles.application.operations.read.load_profiles_by_user_ids import (
+    LoadProfilesByUserIds,
+)
 from profiles.application.operations.write.update_info import UpdateInfo
 from profiles.domain.profile.profile_id import ProfileId
 from profiles.domain.shared.user_id import UserId
@@ -37,6 +40,22 @@ async def update_info(
 ) -> SuccessResponse[None]:
     await sender.send(request)
     return SuccessResponse(result=None, status=HTTP_200_OK)
+
+
+@PROFILE_ROUTER.get(
+    path="/{userd_ids}",
+    status_code=HTTP_200_OK,
+    responses={
+        HTTP_200_OK: {"model": SuccessResponse[list[ProfileReadModel]]},
+        HTTP_404_NOT_FOUND: {"model": ErrorResponse[ApplicationError]},
+    },
+)
+@inject
+async def load_profiles_by_user_ids(
+    user_ids: list[UserId], *, sender: FromDishka[Sender]
+) -> SuccessResponse[list[ProfileReadModel]]:
+    users = await sender.send(LoadProfilesByUserIds(user_ids=user_ids))
+    return SuccessResponse(result=users, status=HTTP_200_OK)
 
 
 @PROFILE_ROUTER.get(

@@ -59,6 +59,25 @@ class SqlProfileGateway(ProfileGateway):
 
         return profile
 
+    async def with_user_ids(self, user_ids: list[UserId]) -> list[ProfileReadModel]:
+        statement = select(
+            PROFILES_TABLE.c.profile_id.label("profile_id"),
+            PROFILES_TABLE.c.user_id.label("user_id"),
+            PROFILES_TABLE.c.birth_date.label("birth_date"),
+            PROFILES_TABLE.c.first_name.label("first_name"),
+            PROFILES_TABLE.c.last_name.label("last_name"),
+            PROFILES_TABLE.c.middle_name.label("middle_name"),
+            PROFILES_TABLE.c.created_at.label("created_at"),
+        ).where(PROFILES_TABLE.c.user_id.in_(user_ids))
+        cursor_result = await self._session.execute(statement)
+
+        profiles: list[ProfileReadModel] = []
+        for cursor_row in cursor_result:
+            profiles.append(profile := self._load(cursor_row))
+            self._identity_map[profile.profile_id] = profile
+
+        return profiles
+
     def _load(self, row: Row) -> ProfileReadModel:
         return ProfileReadModel(
             profile_id=ProfileId(row.profile_id),
