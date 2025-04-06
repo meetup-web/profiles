@@ -33,3 +33,11 @@ async def application_error_handler(_: Request, exception: ApplicationError) -> 
     response_content = ErrorResponse(status_code, error_data)
 
     return JSONResponse(asdict(response_content), status_code)
+
+
+async def internal_error_handler(_: Request, exception: Exception) -> Response:
+    error_data = ErrorData[None](str(exception))
+    status_code = HTTP_500_INTERNAL_SERVER_ERROR
+    response_content = ErrorResponse(status_code, error_data)
+
+    return JSONResponse(asdict(response_content), status_code)

@@ -18,6 +18,7 @@ from profiles.infrastructure.persistence.sql_tables import (
 )
 from profiles.presentation.api.exception_handlers import (
     application_error_handler,
+    internal_error_handler,
 )
 from profiles.presentation.api.routers.healthcheck import HEALTHCHECK_ROUTER
 from profiles.presentation.api.routers.profiles import PROFILE_ROUTER
@@ -58,6 +59,10 @@ def add_exception_handlers(application: FastAPI) -> None:
     application.add_exception_handler(
         ApplicationError,
         cast("HTTPExceptionHandler", application_error_handler),
+    )
+    application.add_exception_handler(
+        Exception,
+        cast("HTTPExceptionHandler", internal_error_handler),
     )
 
 
